@@ -65,6 +65,8 @@ else:
 logger.print(f"Using config: {str(config_f)}", force=True)
 config = load_config(config_f, args=args)
 
+base_url = getattr(config.experiment, "base_url", None)
+
 config.experiment.enable_autoprompt = True if args.enable_autoprompt else config.experiment.enable_autoprompt
 if args.strict:
     config.planner.strict = True
@@ -88,9 +90,18 @@ if args.executor_token:
     print("args.executor_temperature", args.executor_temperature)
     #config.autoprompter.top_p = args.top_p
 autoprompter_backend_cls = MODELS[config.autoprompter.model]
-autoprompter_backend = autoprompter_backend_cls(Role.AUTOPROMPTER, config.autoprompter.model,
-                                      environment.get_toolset(config.autoprompter.toolset),
-                                      keys[autoprompter_backend_cls.NAME.upper()], config)
+autoprompter_backend_kwargs = {
+    "role": Role.AUTOPROMPTER,
+    "model": config.autoprompter.model,
+    "tools": environment.get_toolset(config.autoprompter.toolset),
+    "api_key": keys.get(autoprompter_backend_cls.NAME.upper()),
+    "config": config,
+}
+if autoprompter_backend_cls.NAME == "openai":
+    autoprompter_backend_kwargs["base_url"] = base_url
+    if base_url:
+        autoprompter_backend_kwargs["api_key"] = "NA"
+autoprompter_backend = autoprompter_backend_cls(**autoprompter_backend_kwargs)
 autoprompter_prompter = PromptManager(config_f.parent / config.autoprompter.prompt, challenge, environment)
 autoprompter = AutoPromptAgent(environment, challenge, autoprompter_prompter,
                        autoprompter_backend, max_rounds=config.autoprompter.max_rounds)
@@ -99,17 +110,35 @@ if config.experiment.enable_autoprompt:
     autoprompter.enable_autoprompt()
 
 planner_backend_cls = MODELS[config.planner.model]
-planner_backend = planner_backend_cls(Role.PLANNER, config.planner.model,
-                                      environment.get_toolset(config.planner.toolset),
-                                      keys[planner_backend_cls.NAME.upper()], config)
+planner_backend_kwargs = {
+    "role": Role.PLANNER,
+    "model": config.planner.model,
+    "tools": environment.get_toolset(config.planner.toolset),
+    "api_key": keys.get(planner_backend_cls.NAME.upper()),
+    "config": config,
+}
+if planner_backend_cls.NAME == "openai":
+    planner_backend_kwargs["base_url"] = base_url
+    if base_url:
+        planner_backend_kwargs["api_key"] = "NA"
+planner_backend = planner_backend_cls(**planner_backend_kwargs)
 planner_prompter = PromptManager(config_f.parent / config.planner.prompt, challenge, environment)
 planner = PlannerAgent(environment, challenge, planner_prompter,
                        planner_backend, max_rounds=config.planner.max_rounds)
 
 executor_backend_cls = MODELS[config.executor.model]
-executor_backend = executor_backend_cls(Role.EXECUTOR, config.executor.model,
-                                        environment.get_toolset(config.executor.toolset),
-                                        keys[executor_backend_cls.NAME.upper()], config)
+executor_backend_kwargs = {
+    "role": Role.EXECUTOR,
+    "model": config.executor.model,
+    "tools": environment.get_toolset(config.executor.toolset),
+    "api_key": keys.get(executor_backend_cls.NAME.upper()),
+    "config": config,
+}
+if executor_backend_cls.NAME == "openai":
+    executor_backend_kwargs["base_url"] = base_url
+    if base_url:
+        executor_backend_kwargs["api_key"] = "NA"
+executor_backend = executor_backend_cls(**executor_backend_kwargs)
 executor_prompter = PromptManager(config_f.parent / config.executor.prompt, challenge, environment)
 executor = ExecutorAgent(environment, challenge, executor_prompter,
                          executor_backend, max_rounds=config.executor.max_rounds)

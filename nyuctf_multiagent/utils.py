@@ -7,12 +7,15 @@ from nyuctf_multiagent.backends import MODELS
 class APIKeys(dict):
     """Loads and holds API keys"""
     def __init__(self, key_cfg):
-        keys = Path(key_cfg).open("r")
-        for line in keys:
-            if line.startswith("#"):
-                continue
-            tag, k = line.strip().split("=")
-            self[tag] = k
+        try:
+            with Path(key_cfg).open("r") as keys:
+                for line in keys:
+                    if line.startswith("#") or not line.strip():
+                        continue
+                    tag, k = line.strip().split("=")
+                    self[tag] = k
+        except FileNotFoundError:
+            pass
 
 def load_common_options(parser):
     parser.add_argument("--challenge", required=True, help="Name of the challenge")
