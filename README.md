@@ -38,6 +38,59 @@ To run the ablation experiment of single executor (i.e. without planner), use th
 python3 run_single_executor.py --split <test|development> --challenge <challenge-name> [--enable-autoprompt]
 ```
 
+### Using a Local OpenAI-Compatible API
+
+To run D-CIPHER with a local OpenAI-compatible API, such as `llamaswap`, you can create a new configuration file in the `configs/dcipher` directory. For example, you can create a file named `llamaswap_config.yaml` with the following content:
+
+```yaml
+experiment:
+  max_cost: 1.0
+  enable_autoprompt: False
+  base_url: http://llamaswap:8080/v1
+
+planner:
+  max_rounds: 30
+  model: qwen-expert
+  temperature: 1.0
+  top_p: 1.0
+  max_tokens: 4096
+  prompt: prompts/base_planner_prompt.yaml
+  toolset:
+    - run_command
+    - submit_flag
+    - giveup
+    - delegate
+executor:
+  max_rounds: 100
+  model: qwen-fast
+  temperature: 1.0
+  top_p: 1.0
+  max_tokens: 4096
+  len_observations: 5
+  prompt: prompts/base_executor_prompt.yaml
+  toolset:
+    - run_command
+    - finish_task
+    - disassemble
+    - decompile
+    - create_file
+autoprompter:
+  max_rounds: 5
+  model: qwen-abliterated
+  temperature: 1.0
+  max_tokens: 4096
+  prompt: prompts/autoprompt_prompt.yaml
+  toolset:
+    - run_command
+    - generate_prompt
+```
+
+Then, you can run D-CIPHER with the following command:
+
+```
+python3 run_dcipher.py --config configs/dcipher/llamaswap_config.yaml --split <test|development> --challenge <challenge-name>
+```
+
 ## Running the baseline
 
 Use the following command to run the baseline agent:

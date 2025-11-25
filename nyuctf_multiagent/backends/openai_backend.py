@@ -58,9 +58,9 @@ class OpenAIBackend(Backend):
         }
     }
 
-    def __init__(self, role, model, tools, api_key, config):
+    def __init__(self, role, model, tools, api_key, config, base_url=None):
         super().__init__(role, model, tools, config)
-        self.client = OpenAI(api_key=api_key)
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.tool_schemas = [self.get_tool_schema(tool) for tool in tools.values()]
 
     @staticmethod
@@ -93,6 +93,8 @@ class OpenAIBackend(Backend):
         )
 
     def calculate_cost(self, response):
+        if self.model not in self.MODELS:
+            return 0.0
         return self.in_price * response.usage.prompt_tokens + self.out_price * response.usage.completion_tokens
 
     def send(self, messages):
