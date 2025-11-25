@@ -99,6 +99,8 @@ autoprompter_backend_kwargs = {
 }
 if autoprompter_backend_cls.NAME == "openai":
     autoprompter_backend_kwargs["base_url"] = base_url
+    if base_url:
+        autoprompter_backend_kwargs["api_key"] = "NA"
 autoprompter_backend = autoprompter_backend_cls(**autoprompter_backend_kwargs)
 autoprompter_prompter = PromptManager(config_f.parent / config.autoprompter.prompt, challenge, environment)
 autoprompter = AutoPromptAgent(environment, challenge, autoprompter_prompter,
@@ -117,6 +119,8 @@ planner_backend_kwargs = {
 }
 if planner_backend_cls.NAME == "openai":
     planner_backend_kwargs["base_url"] = base_url
+    if base_url:
+        planner_backend_kwargs["api_key"] = "NA"
 planner_backend = planner_backend_cls(**planner_backend_kwargs)
 planner_prompter = PromptManager(config_f.parent / config.planner.prompt, challenge, environment)
 planner = PlannerAgent(environment, challenge, planner_prompter,
@@ -132,6 +136,8 @@ executor_backend_kwargs = {
 }
 if executor_backend_cls.NAME == "openai":
     executor_backend_kwargs["base_url"] = base_url
+    if base_url:
+        executor_backend_kwargs["api_key"] = "NA"
 executor_backend = executor_backend_cls(**executor_backend_kwargs)
 executor_prompter = PromptManager(config_f.parent / config.executor.prompt, challenge, environment)
 executor = ExecutorAgent(environment, challenge, executor_prompter,
